@@ -1,0 +1,12 @@
+---
+path: github.com/kinghrothgar/redis
+deps:
+  - loc: git@github.com:grooveshark/golib.git
+    type: git
+    ref: master
+    path: github.com/grooveshark/golib
+
+  - loc: https://github.com/mediocregopher/radix.git
+    type: git
+    ref: byteslice-fix
+    path: github.com/mediocregopher/radix
