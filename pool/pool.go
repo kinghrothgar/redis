@@ -1,17 +1,17 @@
 package pool
 
 import (
-	"github.com/mediocregopher/radix/redis"
+	"errors"
+	"github.com/fzzy/radix/redis"
 	"github.com/grooveshark/golib/gslog"
-    "errors"
 )
 
 type Pool struct {
-    // TODO: figure out channel direction
-	outPool chan *Client
-	inPool chan *Client
+	// TODO: figure out channel direction
+	outPool     chan *Client
+	inPool      chan *Client
 	versionChan chan string
-    // TODO: Should network and addr be protect by a lock
+	// TODO: Should network and addr be protect by a lock
 	network, addr string
 }
 
@@ -56,12 +56,12 @@ func poolMan(pool *Pool, versionStr string) {
 			if client.versionStr == versionStr {
 				gslog.Debug("POOL: poolMan added client back to pool")
 				select {
-                case pool.outPool <- client:
-                    continue
-                default:
-                    gslog.Warn("POOL: out pool is full")
-                }
-                continue
+				case pool.outPool <- client:
+					continue
+				default:
+					gslog.Warn("POOL: out pool is full")
+				}
+				continue
 			}
 			client.Close()
 			gslog.Debug("POOL: poolMan discarded client")
@@ -83,21 +83,20 @@ func New(network string, addr string, capacity int) *Pool {
 	}
 
 	pool := &Pool{
-		outPool: outPool,
-		inPool: inPool,
+		outPool:     outPool,
+		inPool:      inPool,
 		versionChan: make(chan string),
-		network: network,
-		addr: addr,
+		network:     network,
+		addr:        addr,
 	}
 	go poolMan(pool, buildVersionStr(network, addr))
 	return pool
 }
 
-
 // Get a *Client from the pool or create a new one if there are none available.
 func (p *Pool) Get() (*Client, error) {
 	select {
-    // TODO: Should I be getting the ok also an verifying that the channel wasn't closed
+	// TODO: Should I be getting the ok also an verifying that the channel wasn't closed
 	case r := <-p.outPool:
 		gslog.Debug("POOL: got client from outPool")
 		return r, nil
@@ -107,8 +106,8 @@ func (p *Pool) Get() (*Client, error) {
 	versionStr := buildVersionStr(p.network, p.addr)
 	r, err := redis.Dial(p.network, p.addr)
 	if err != nil {
-	    return nil, err
-    }
+		return nil, err
+	}
 	// TODO: learn how to use a mix of named and unamed fields
 	gslog.Debug("POOL: created new client")
 	return &Client{r, versionStr}, nil
@@ -123,8 +122,8 @@ func (p *Pool) Put(client *Client) error {
 	case p.inPool <- client:
 		return nil
 	default:
-        gslog.Warn("POOL: in pool is full")
-        return errors.New("in pool is full")
+		gslog.Warn("POOL: in pool is full")
+		return errors.New("in pool is full")
 	}
 }
 

@@ -6,7 +6,7 @@ deps:
     ref: master
     path: github.com/grooveshark/golib
 
-  - loc: https://github.com/mediocregopher/radix.git
+  - loc: https://github.com/fzzy/radix.git
     type: git
-    ref: byteslice-fix
-    path: github.com/mediocregopher/radix
+    ref: master
+    path: github.com/fzzy/radix
